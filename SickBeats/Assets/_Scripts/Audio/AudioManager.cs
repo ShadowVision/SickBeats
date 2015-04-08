@@ -51,4 +51,8 @@ public class AudioManager : BeatListener {
 			beat.OnAudioBeat(timeStep);
 		}
 	}
+
+	public float timeUntilNextBeat(AudioTrack.TimeStep timeStep){
+		return currentTrack.timeUntilNextBeat (timeStep);
+	}
 }

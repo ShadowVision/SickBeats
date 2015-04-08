@@ -17,10 +17,14 @@ public class AudioTrack : MonoBehaviour {
 
 	[HideInInspector]
 	public AudioManager manager;
+	
+	private float[] lastBeatTimes;
+	private float[] beatTimes;
 
 	// Use this for initialization
-	void Start () {
-	
+	void Awake () {
+		lastBeatTimes = new float[5];
+		beatTimes = new float[5];
 	}
 	
 	// Update is called once per frame
@@ -30,24 +34,32 @@ public class AudioTrack : MonoBehaviour {
 
 	public void play(){
 		playing = true;
-		InvokeRepeating ("OnAudioBeat_Whole", 0, bpm / 60);
-		InvokeRepeating ("OnAudioBeat_Half", bpm / 60 / 2, bpm / 60 / 2);
-		InvokeRepeating ("OnAudioBeat_Quarter", bpm / 60 / 4, bpm / 60 / 4);
+		beatTimes [(int)TimeStep.WHOLE] = bpm / 60;
+		beatTimes [(int)TimeStep.HALF] = bpm / 60 /2;
+		beatTimes [(int)TimeStep.QUARTER] = bpm / 60 /4;
+		beatTimes [(int)TimeStep.EIGTH] = bpm / 60 /8;
+		beatTimes [(int)TimeStep.SIXTEENTH] = bpm / 60 /16;
+		InvokeRepeating ("OnAudioBeat_Whole", 0, beatTimes[(int)TimeStep.WHOLE]);
+		InvokeRepeating ("OnAudioBeat_Half", beatTimes[(int)TimeStep.HALF],beatTimes[(int)TimeStep.HALF]);
+		InvokeRepeating ("OnAudioBeat_Quarter", beatTimes[(int)TimeStep.QUARTER],beatTimes[(int)TimeStep.QUARTER]);
 	}
 	public void stop(){
 		playing = false;
 	}
-	
+	private void OnBeat(TimeStep timeStep){
+		lastBeatTimes [(int)timeStep] = Time.time;
+		manager.OnAudioBeat (timeStep);
+	}
 	protected virtual void OnAudioBeat_Whole(){
-		Debug.Log ("WHOLE BEAT");
-		manager.OnAudioBeat (TimeStep.WHOLE);
+		OnBeat (TimeStep.WHOLE);
 	}
 	protected virtual void OnAudioBeat_Half(){
-		Debug.Log ("HALF BEAT");
-		manager.OnAudioBeat (TimeStep.HALF);
+		OnBeat (TimeStep.HALF);
 	}
 	protected virtual void OnAudioBeat_Quarter(){
-		Debug.Log ("QUARTER BEAT");
-		manager.OnAudioBeat (TimeStep.QUARTER);
+		OnBeat (TimeStep.QUARTER);
+	}
+	public float timeUntilNextBeat(AudioTrack.TimeStep timeStep){
+		return lastBeatTimes[(int)timeStep] + beatTimes[(int)timeStep] - Time.time;
 	}
 }
